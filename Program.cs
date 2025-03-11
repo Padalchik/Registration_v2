@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Registration_v2;
 using Registration_v2.Entity;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
