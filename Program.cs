@@ -25,7 +25,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/", () => Results.Redirect("/Identity/Account/Register"));
+app.MapGet("/", () => Results.Redirect("/Index"));
 app.MapRazorPages();
 
 app.Run();

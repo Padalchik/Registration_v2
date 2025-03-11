@@ -1,0 +1,28 @@
+﻿@page
+@model Registration_v2.Pages.IndexModel
+@{
+}
+
+@using Registration_v2.Service
+@inject AvatarService AvatarService
+
+<h2>Registered Users</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Avatar</th>
+            <th>Email</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model.Users)
+        {
+            <tr>
+                <td>
+                    <img src="@AvatarService.GetAvatarUrl(user)" alt="Avatar" class="rounded-circle" width="50" height="50" />
+                </td>
+                <td>@user.Email</td>
+            </tr>
+        }
+    </tbody>
+</table>
