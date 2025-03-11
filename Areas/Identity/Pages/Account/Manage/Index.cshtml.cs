@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Registration_v2.Entity;
+using Registration_v2.Service;
 
 namespace Registration_v2.Areas.Identity.Pages.Account.Manage
 {
@@ -17,13 +18,16 @@ namespace Registration_v2.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<CustomUser> _userManager;
         private readonly SignInManager<CustomUser> _signInManager;
+        private readonly AvatarService _avatarService;
 
         public IndexModel(
             UserManager<CustomUser> userManager,
-            SignInManager<CustomUser> signInManager)
+            SignInManager<CustomUser> signInManager,
+            AvatarService avatarService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _avatarService = avatarService;
         }
 
         /// <summary>
@@ -31,6 +35,7 @@ namespace Registration_v2.Areas.Identity.Pages.Account.Manage
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public string Username { get; set; }
+        public string AvatarUrl { get; set; }
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -59,6 +64,9 @@ namespace Registration_v2.Areas.Identity.Pages.Account.Manage
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
+
+            [Display(Name = "Avatar")]
+            public IFormFile AvatarImage { get; set; }
         }
 
         private async Task LoadAsync(CustomUser user)
@@ -67,6 +75,7 @@ namespace Registration_v2.Areas.Identity.Pages.Account.Manage
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
             Username = userName;
+            AvatarUrl = _avatarService.GetAvatarUrl(user); // Просто обращаемся к сервису
 
             Input = new InputModel
             {
@@ -90,9 +99,7 @@ namespace Registration_v2.Areas.Identity.Pages.Account.Manage
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
-            {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
-            }
 
             if (!ModelState.IsValid)
             {
@@ -107,6 +114,22 @@ namespace Registration_v2.Areas.Identity.Pages.Account.Manage
                 if (!setPhoneResult.Succeeded)
                 {
                     StatusMessage = "Unexpected error when trying to set phone number.";
+                    return RedirectToPage();
+                }
+            }
+
+            if (Input.AvatarImage != null)
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await Input.AvatarImage.CopyToAsync(memoryStream);
+                    user.Avatar = memoryStream.ToArray();
+                }
+
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                {
+                    StatusMessage = "Unexpected error when trying to update avatar.";
                     return RedirectToPage();
                 }
             }
